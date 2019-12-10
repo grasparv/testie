@@ -13,6 +13,9 @@ func getGoBinary() string {
 		if err != nil {
 			continue
 		}
+		if finfo.IsDir() {
+			continue
+		}
 		m := finfo.Mode().Perm()
 		if m&0b001001001 != 0 {
 			return name
