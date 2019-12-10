@@ -164,7 +164,9 @@ func (t *Testie) printLine(line []byte) {
 	case "skip":
 		t.seen[r.Test].skip = true
 		t.skipcount++
-		fmt.Printf("%s %s\n", aurora.Yellow("skip"), r.Test)
+		if t.verbose {
+			fmt.Printf("%s %s\n", aurora.Yellow("skip"), r.Test)
+		}
 	case "bench":
 		fallthrough
 	case "output":
