@@ -16,8 +16,7 @@ type Testie struct {
 	passcount int
 	failcount int
 
-	seen    map[string]*test
-	notjson bool
+	seen map[string]*test
 
 	verbose bool
 }
@@ -103,15 +102,14 @@ func (t *Testie) Run(args []string) int {
 		}
 	}
 
-	if !t.notjson {
-		fmt.Printf("%d failed, %d passed, %d skipped, %d total\n",
-			t.failcount,
-			t.passcount,
-			t.skipcount,
-			t.failcount+t.passcount+t.skipcount)
-		if t.failcount > 0 {
-			fmt.Printf("%s\n", aurora.Red("TEST FAILED"))
-		}
+	fmt.Printf("%d failed, %d passed, %d skipped, %d total\n",
+		t.failcount,
+		t.passcount,
+		t.skipcount,
+		t.failcount+t.passcount+t.skipcount)
+
+	if t.failcount > 0 {
+		fmt.Printf("%s\n", aurora.Red("TEST FAILED"))
 	}
 
 	if t.failcount > 0 {
@@ -147,7 +145,6 @@ func (t *Testie) printLine(line []byte) {
 	var r record
 	err := json.Unmarshal(line, &r)
 	if err != nil {
-		t.notjson = true
 		fmt.Printf("%s", line)
 		return
 	}
