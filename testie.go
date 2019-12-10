@@ -104,7 +104,7 @@ func (t *Testie) Run(args []string) int {
 	}
 
 	if !t.notjson {
-		fmt.Printf("%d fail, %d passed, %d skipped, %d total\n",
+		fmt.Printf("%d failed, %d passed, %d skipped, %d total\n",
 			t.failcount,
 			t.passcount,
 			t.skipcount,
@@ -181,7 +181,7 @@ func (t *Testie) printLine(line []byte) {
 		if t.verbose {
 			fmt.Printf("%s %s\n", aurora.Green("pass"), r.Test)
 		}
-		if r.Elapsed > 1.0 {
+		if r.Elapsed >= 1.0 {
 			t.printDurationWarning(&r)
 		}
 	case "fail":
@@ -193,12 +193,12 @@ func (t *Testie) printLine(line []byte) {
 		for _, s := range t.seen[r.Test].scrollback {
 			fmt.Printf("    %s", s)
 		}
-		if r.Elapsed > 1.0 {
+		if r.Elapsed >= 1.0 {
 			t.printDurationWarning(&r)
 		}
 	}
 }
 
 func (t *Testie) printDurationWarning(r *record) {
-	fmt.Printf("%s test '%s' took %0.2fs\n", aurora.Blue("slow"), r.Test, r.Elapsed)
+	fmt.Printf("%s test %s took %0.2fs\n", aurora.Blue("slow"), r.Test, r.Elapsed)
 }
