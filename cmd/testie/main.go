@@ -42,13 +42,14 @@ func main() {
 
 	args := append(os.Args[1:], extralist...)
 
-	for i, a := range args {
-		if a == "-v" {
+	for i := 0; i < len(args); i++ {
+		if args[i] == "-v" {
 			verbose = true
 			args = append(args[:i], args[i+1:]...)
-		}
-		if a == "-json" {
+			i--
+		} else if args[i] == "-json" {
 			args = append(args[:i], args[i+1:]...)
+			i--
 		}
 	}
 
