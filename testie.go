@@ -114,7 +114,11 @@ func (t *Testie) Run(args []string) int {
 		}
 	}
 
-	return 0
+	if t.failcount > 0 {
+		return 1
+	} else {
+		return 0
+	}
 }
 
 type record struct {
