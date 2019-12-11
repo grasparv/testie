@@ -36,6 +36,7 @@ var helptext = `
 func main() {
 	verbose := false
 	extra := false
+	debug := false
 
 	var extralist []string
 	extras := os.Getenv("TESTIE")
@@ -57,6 +58,10 @@ func main() {
 		} else if args[i] == "-json" {
 			args = append(args[:i], args[i+1:]...)
 			i--
+		} else if args[i] == "-debug" || args[i] == "-d" {
+			debug = true
+			args = append(args[:i], args[i+1:]...)
+			i--
 		}
 	}
 
@@ -65,7 +70,7 @@ func main() {
 		return
 	}
 
-	t := testie.New(verbose, extra)
+	t := testie.New(verbose, extra, debug)
 	rc := t.Run(args)
 	os.Exit(rc)
 }

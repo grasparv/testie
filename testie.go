@@ -19,6 +19,7 @@ type Testie struct {
 
 	seen map[string]*test
 
+	debug        bool
 	verbose      bool
 	extraverbose bool
 }
@@ -35,7 +36,7 @@ type test struct {
 
 const durationHigh = 1.0
 
-func New(verbose bool, extra bool) *Testie {
+func New(verbose bool, extra bool, debug bool) *Testie {
 	if extra {
 		verbose = true
 	}
@@ -43,6 +44,7 @@ func New(verbose bool, extra bool) *Testie {
 		seen:         make(map[string]*test),
 		verbose:      verbose,
 		extraverbose: extra,
+		debug:        debug,
 	}
 	return &t
 }
@@ -163,7 +165,9 @@ func (t *Testie) printLine(line []byte) {
 		return
 	}
 
-	//fmt.Printf("%+v\n", r)
+	if t.debug {
+		fmt.Printf("%+v\n", r)
+	}
 
 	switch r.Action {
 	case "run":
