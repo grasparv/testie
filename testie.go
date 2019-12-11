@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"io"
 	"os/exec"
-	"strings"
 	"time"
 
 	"github.com/logrusorgru/aurora"
@@ -119,17 +118,11 @@ func (p *Testie) Run(args []string) int {
 
 	rc := cmd.Wait()
 
-	fmt.Printf("%d failed, %d passed, %d skipped, %d total",
+	fmt.Printf("%d failed, %d passed, %d skipped, %d total\n",
 		p.failcount,
 		p.passcount,
 		p.skipcount,
 		p.failcount+p.passcount+p.skipcount)
-
-	if p.failcount == 0 && rc != nil {
-		fmt.Printf(", rc %v?!\n", rc)
-	} else {
-		fmt.Printf("\n", rc)
-	}
 
 	if p.failcount > 0 {
 		fmt.Printf("%s\n", aurora.Red("TEST FAILED"))
@@ -172,10 +165,6 @@ func (p *Testie) printLine(line []byte) {
 		return
 	}
 	if len(r.Test) == 0 {
-		// Only 'go test' summaries
-		return
-	}
-	if p.isMetaTest(&r) {
 		return
 	}
 
@@ -224,18 +213,6 @@ func (p *Testie) printLine(line []byte) {
 		p.printScrollback(t, &r)
 		p.printDurationWarning(&r)
 	}
-}
-
-func (p *Testie) isMetaTest(r *record) bool {
-	for _, v := range p.seen {
-		if strings.Contains(v.name, "/") {
-			parts := strings.Split(v.name, "/")
-			if len(parts) > 1 && parts[0] == r.Test && r.Package == v.pkg {
-				return true
-			}
-		}
-	}
-	return false
 }
 
 func (p *Testie) makeKey(r *record) string {
