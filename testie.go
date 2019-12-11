@@ -32,6 +32,8 @@ type test struct {
 	skip bool
 }
 
+const durationHigh = 1.0
+
 func New(verbose bool, extra bool) *Testie {
 	if extra {
 		verbose = true
@@ -190,20 +192,15 @@ func (t *Testie) printLine(line []byte) {
 				t.printPassed(&r)
 			}
 		}
-		if r.Elapsed >= 1.0 {
+		if r.Elapsed >= durationHigh {
 			t.printDurationWarning(&r)
 		}
 	case "fail":
 		t.seen[r.Test].fail = true
 		t.failcount++
-		if t.extraverbose {
-			t.printFailed(&r)
-			t.printScrollback(t.seen[r.Test], &r)
-		} else {
-			t.printFailed(&r)
-			t.printScrollback(t.seen[r.Test], &r)
-		}
-		if r.Elapsed >= 1.0 {
+		t.printFailed(&r)
+		t.printScrollback(t.seen[r.Test], &r)
+		if r.Elapsed >= durationHigh {
 			t.printDurationWarning(&r)
 		}
 	}
