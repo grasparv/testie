@@ -166,6 +166,9 @@ func (t *Testie) printLine(line []byte) {
 		// Only 'go test' summaries
 		return
 	}
+	if t.isMetaTest(&r) {
+		return
+	}
 
 	if t.debug {
 		fmt.Printf("%+v\n", r)
@@ -250,7 +253,7 @@ func (t *Testie) printRunning(r *record) {
 }
 
 func (t *Testie) printDurationWarning(r *record) {
-	if !t.isMetaTest(r) && r.Elapsed >= durationHigh {
+	if r.Elapsed >= durationHigh {
 		fmt.Printf("%s %s took %0.2fs\n", aurora.Blue("slow"), r.Test, r.Elapsed)
 	}
 }
