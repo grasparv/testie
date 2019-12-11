@@ -21,19 +21,22 @@ var helptext = `
 
   testie warns if a test takes more than 1 second to run.
 
-  testie can be given -v to also print passing tests.
-
-  testie can be given -vv to also print test output.
-
   Without arguments, testie only prints:
   
-  1) failed tests
+  1) failed tests and their scrollback
   2) warnings about slow tests
-  3) a minimal summary at the end.
+  3) a minimal summary at the end
+
+    -s dont print any scrollback even on failures
+
+    -v print passing tests
+
+    -vv print test output
 
 `
 
 func main() {
+	short := false
 	verbose := false
 	extra := false
 	debug := false
@@ -58,6 +61,10 @@ func main() {
 		} else if args[i] == "-json" {
 			args = append(args[:i], args[i+1:]...)
 			i--
+		} else if args[i] == "-s" {
+			short = true
+			args = append(args[:i], args[i+1:]...)
+			i--
 		} else if args[i] == "-debug" || args[i] == "-d" {
 			debug = true
 			args = append(args[:i], args[i+1:]...)
@@ -70,7 +77,7 @@ func main() {
 		return
 	}
 
-	t := testie.New(verbose, extra, debug)
+	t := testie.New(verbose, extra, debug, short)
 	rc := t.Run(args)
 	os.Exit(rc)
 }

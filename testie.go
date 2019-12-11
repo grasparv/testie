@@ -19,6 +19,7 @@ type Testie struct {
 
 	seen map[string]*test
 
+	short        bool
 	debug        bool
 	verbose      bool
 	extraverbose bool
@@ -36,7 +37,7 @@ type test struct {
 
 const durationHigh = 1.0
 
-func New(verbose bool, extra bool, debug bool) *Testie {
+func New(verbose bool, extra bool, debug bool, short bool) *Testie {
 	if extra {
 		verbose = true
 	}
@@ -45,6 +46,7 @@ func New(verbose bool, extra bool, debug bool) *Testie {
 		verbose:      verbose,
 		extraverbose: extra,
 		debug:        debug,
+		short:        short,
 	}
 	return &t
 }
@@ -262,9 +264,11 @@ func (t *Testie) getTimingInfo(r *record) string {
 }
 
 func (t *Testie) printScrollback(x *test, r *record) {
-	fmt.Printf("  in package %s\n", aurora.Bold(r.Package))
-	fmt.Printf("  here follows test output:\n")
-	for _, s := range t.seen[r.Test].scrollback {
-		fmt.Printf("    %s", s)
+	if !t.short {
+		fmt.Printf("  in package %s\n", aurora.Bold(r.Package))
+		fmt.Printf("  here follows test output:\n")
+		for _, s := range t.seen[r.Test].scrollback {
+			fmt.Printf("    %s", s)
+		}
 	}
 }
