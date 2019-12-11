@@ -117,17 +117,25 @@ func (p *Testie) Run(args []string) int {
 		}
 	}
 
-	fmt.Printf("%d failed, %d passed, %d skipped, %d total\n",
+	rc := cmd.Wait()
+
+	fmt.Printf("%d failed, %d passed, %d skipped, %d total",
 		p.failcount,
 		p.passcount,
 		p.skipcount,
 		p.failcount+p.passcount+p.skipcount)
 
+	if p.failcount == 0 && rc != nil {
+		fmt.Printf(", rc %v?!\n", rc)
+	} else {
+		fmt.Printf("\n", rc)
+	}
+
 	if p.failcount > 0 {
 		fmt.Printf("%s\n", aurora.Red("TEST FAILED"))
 	}
 
-	if p.failcount > 0 {
+	if rc != nil || p.failcount > 0 {
 		return 1
 	} else {
 		return 0
