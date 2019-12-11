@@ -18,7 +18,8 @@ type Testie struct {
 
 	seen map[string]*test
 
-	verbose bool
+	verbose      bool
+	extraverbose bool
 }
 
 type test struct {
@@ -29,10 +30,14 @@ type test struct {
 	scrollback []string
 }
 
-func New(verbose bool) *Testie {
+func New(verbose bool, extra bool) *Testie {
+	if extra {
+		verbose = true
+	}
 	t := Testie{
-		seen:    make(map[string]*test),
-		verbose: verbose,
+		seen:         make(map[string]*test),
+		verbose:      verbose,
+		extraverbose: extra,
 	}
 	return &t
 }
@@ -166,7 +171,7 @@ func (t *Testie) printLine(line []byte) {
 		t.seen[r.Test].skip = true
 		t.skipcount++
 		if t.verbose {
-			fmt.Printf("%s %s\n", aurora.Yellow("skip"), r.Test)
+			t.printSkipped(&r)
 		}
 	case "bench":
 		fallthrough
@@ -176,7 +181,12 @@ func (t *Testie) printLine(line []byte) {
 		t.seen[r.Test].pass = true
 		t.passcount++
 		if t.verbose {
-			fmt.Printf("%s %s\n", aurora.Green("pass"), r.Test)
+			if t.extraverbose {
+				t.printPassed(&r)
+				t.printScrollback(t.seen[r.Test], &r)
+			} else {
+				t.printPassed(&r)
+			}
 		}
 		if r.Elapsed >= 1.0 {
 			t.printDurationWarning(&r)
@@ -184,11 +194,12 @@ func (t *Testie) printLine(line []byte) {
 	case "fail":
 		t.seen[r.Test].fail = true
 		t.failcount++
-		fmt.Printf("%s %s\n", aurora.Red("fail"), r.Test)
-		fmt.Printf("  in package %s\n", aurora.Bold(r.Package))
-		fmt.Printf("  here follows test output:\n")
-		for _, s := range t.seen[r.Test].scrollback {
-			fmt.Printf("    %s", s)
+		if t.extraverbose {
+			t.printFailed(&r)
+			t.printScrollback(t.seen[r.Test], &r)
+		} else {
+			t.printFailed(&r)
+			t.printScrollback(t.seen[r.Test], &r)
 		}
 		if r.Elapsed >= 1.0 {
 			t.printDurationWarning(&r)
@@ -196,6 +207,38 @@ func (t *Testie) printLine(line []byte) {
 	}
 }
 
+func (t *Testie) printSkipped(r *record) {
+	fmt.Printf("%s %s%s\n", aurora.Yellow("skip"), t.getTimingInfo(r), r.Test)
+}
+
+func (t *Testie) printPassed(r *record) {
+	fmt.Printf("%s %s%s\n", aurora.Green("pass"), t.getTimingInfo(r), r.Test)
+}
+
+func (t *Testie) printFailed(r *record) {
+	fmt.Printf("%s %s%s\n", aurora.Red("fail"), t.getTimingInfo(r), r.Test)
+}
+
+func (t *Testie) printRunning(r *record) {
+	fmt.Printf("%s %s%s in %s\n", aurora.Bold("run "), r.Test, t.getTimingInfo(r), r.Package)
+}
+
 func (t *Testie) printDurationWarning(r *record) {
 	fmt.Printf("%s test %s took %0.2fs\n", aurora.Blue("slow"), r.Test, r.Elapsed)
+}
+
+func (t *Testie) getTimingInfo(r *record) string {
+	if t.extraverbose {
+		return fmt.Sprintf("%0.2fs ", r.Elapsed)
+	} else {
+		return ""
+	}
+}
+
+func (t *Testie) printScrollback(x *test, r *record) {
+	fmt.Printf("  in package %s\n", aurora.Bold(r.Package))
+	fmt.Printf("  here follows test output:\n")
+	for _, s := range t.seen[r.Test].scrollback {
+		fmt.Printf("    %s", s)
+	}
 }

@@ -23,6 +23,8 @@ var helptext = `
 
   testie can be given -v to also print passing tests.
 
+  testie can be given -vv to also print test output.
+
   Without arguments, testie only prints:
   
   1) failed tests
@@ -33,6 +35,7 @@ var helptext = `
 
 func main() {
 	verbose := false
+	extra := false
 
 	var extralist []string
 	extras := os.Getenv("TESTIE")
@@ -47,6 +50,10 @@ func main() {
 			verbose = true
 			args = append(args[:i], args[i+1:]...)
 			i--
+		} else if args[i] == "-vv" {
+			extra = true
+			args = append(args[:i], args[i+1:]...)
+			i--
 		} else if args[i] == "-json" {
 			args = append(args[:i], args[i+1:]...)
 			i--
@@ -58,7 +65,7 @@ func main() {
 		return
 	}
 
-	t := testie.New(verbose)
+	t := testie.New(verbose, extra)
 	rc := t.Run(args)
 	os.Exit(rc)
 }
