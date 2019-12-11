@@ -23,19 +23,23 @@ func TestSlow(t *testing.T) {
 func TestHier(t *testing.T) {
 	t.Run("section 1", func(t *testing.T) {
 		fmt.Printf("running in section 1\n")
+		time.Sleep(time.Millisecond * 250)
 	})
 
 	t.Run("section 2", func(t *testing.T) {
 		fmt.Printf("running in section 2\n")
+		time.Sleep(time.Millisecond * 250)
 	})
 
 	t.Run("section 3", func(t *testing.T) {
 		fmt.Printf("running in section 3\n")
 		t.Fail()
+		time.Sleep(time.Millisecond * 250)
 	})
 
 	t.Run("section 4", func(t *testing.T) {
 		fmt.Printf("running in section 4\n")
+		time.Sleep(time.Millisecond * 250)
 	})
 
 }

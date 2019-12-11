@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io"
 	"os/exec"
+	"strings"
 	"time"
 
 	"github.com/logrusorgru/aurora"
@@ -192,18 +193,26 @@ func (t *Testie) printLine(line []byte) {
 				t.printPassed(&r)
 			}
 		}
-		if r.Elapsed >= durationHigh {
-			t.printDurationWarning(&r)
-		}
+		t.printDurationWarning(&r)
 	case "fail":
 		t.seen[r.Test].fail = true
 		t.failcount++
 		t.printFailed(&r)
 		t.printScrollback(t.seen[r.Test], &r)
-		if r.Elapsed >= durationHigh {
-			t.printDurationWarning(&r)
+		t.printDurationWarning(&r)
+	}
+}
+
+func (t *Testie) isMetaTest(r *record) bool {
+	for k, _ := range t.seen {
+		if strings.Contains(k, "/") {
+			parts := strings.Split(k, "/")
+			if len(parts) > 1 && parts[0] == r.Test {
+				return true
+			}
 		}
 	}
+	return false
 }
 
 func (t *Testie) createTest(r *record) {
@@ -235,7 +244,9 @@ func (t *Testie) printRunning(r *record) {
 }
 
 func (t *Testie) printDurationWarning(r *record) {
-	fmt.Printf("%s test %s took %0.2fs\n", aurora.Blue("slow"), r.Test, r.Elapsed)
+	if !t.isMetaTest(r) && r.Elapsed >= durationHigh {
+		fmt.Printf("%s %s took %0.2fs\n", aurora.Blue("slow"), r.Test, r.Elapsed)
+	}
 }
 
 func (t *Testie) getTimingInfo(r *record) string {
