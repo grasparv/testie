@@ -49,3 +49,9 @@ func TestMaybeSkip(t *testing.T) {
 		t.SkipNow()
 	}
 }
+
+func BenchmarkHello(b *testing.B) {
+	for n := 0; n < b.N; n++ {
+		b.Logf("hello\n")
+	}
+}

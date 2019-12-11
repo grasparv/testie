@@ -23,11 +23,13 @@ type Testie struct {
 }
 
 type test struct {
-	name       string
-	pass       bool
-	fail       bool
-	skip       bool
+	name string
+
 	scrollback []string
+
+	pass bool
+	fail bool
+	skip bool
 }
 
 func New(verbose bool, extra bool) *Testie {
@@ -162,11 +164,7 @@ func (t *Testie) printLine(line []byte) {
 
 	switch r.Action {
 	case "run":
-		if _, ok := t.seen[r.Test]; !ok {
-			t.seen[r.Test] = &test{
-				scrollback: make([]string, 0, 100),
-			}
-		}
+		t.createTest(&r)
 	case "skip":
 		t.seen[r.Test].skip = true
 		t.skipcount++
@@ -174,8 +172,12 @@ func (t *Testie) printLine(line []byte) {
 			t.printSkipped(&r)
 		}
 	case "bench":
-		fallthrough
+		t.printBench(&r)
+		if t.extraverbose {
+			t.printScrollback(t.seen[r.Test], &r)
+		}
 	case "output":
+		t.createTest(&r) // needed for bench
 		t.seen[r.Test].scrollback = append(t.seen[r.Test].scrollback, r.Output)
 	case "pass":
 		t.seen[r.Test].pass = true
@@ -207,6 +209,18 @@ func (t *Testie) printLine(line []byte) {
 	}
 }
 
+func (t *Testie) createTest(r *record) {
+	if _, ok := t.seen[r.Test]; !ok {
+		t.seen[r.Test] = &test{
+			scrollback: make([]string, 0, 100),
+		}
+	}
+}
+
+func (t *Testie) printBench(r *record) {
+	fmt.Printf("%s %s%s\n", aurora.Yellow("bnch"), t.getTimingInfo(r), r.Test)
+}
+
 func (t *Testie) printSkipped(r *record) {
 	fmt.Printf("%s %s%s\n", aurora.Yellow("skip"), t.getTimingInfo(r), r.Test)
 }
@@ -228,7 +242,7 @@ func (t *Testie) printDurationWarning(r *record) {
 }
 
 func (t *Testie) getTimingInfo(r *record) string {
-	if t.extraverbose {
+	if t.extraverbose || r.Action == "bench" {
 		return fmt.Sprintf("%0.2fs ", r.Elapsed)
 	} else {
 		return ""
