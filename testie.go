@@ -22,6 +22,7 @@ type Testie struct {
 	debug        bool
 	verbose      bool
 	extraverbose bool
+	timefactor   float64
 }
 
 type test struct {
@@ -37,9 +38,9 @@ type test struct {
 }
 
 const durationHigh = 1.0
-const durationHanging = 5.0
+const durationHanging = 10.0
 
-func New(verbose bool, extra bool, debug bool, short bool) *Testie {
+func New(verbose bool, extra bool, debug bool, short bool, tf float64) *Testie {
 	if extra {
 		verbose = true
 	}
@@ -49,6 +50,7 @@ func New(verbose bool, extra bool, debug bool, short bool) *Testie {
 		extraverbose: extra,
 		debug:        debug,
 		short:        short,
+		timefactor:   tf,
 	}
 	return &p
 }
@@ -262,7 +264,7 @@ func (p *Testie) printRunning(r *record) {
 }
 
 func (p *Testie) printDurationWarning(r *record) {
-	if r.Elapsed >= durationHigh {
+	if r.Elapsed >= durationHigh*p.timefactor {
 		fmt.Printf("%s %s took %0.2fs\n", aurora.Blue("slow"), r.Test, r.Elapsed)
 	}
 }
@@ -298,7 +300,11 @@ func (t test) finished() bool {
 }
 
 func (p *Testie) watchdog(t *test) {
-	tick := time.NewTicker(time.Second * durationHanging)
+	second := int64(time.Second)
+	fsecond := float64(second)
+	tf := durationHanging * p.timefactor * fsecond
+	dtf := time.Duration(tf)
+	tick := time.NewTicker(dtf)
 	loop := true
 	for loop {
 		select {

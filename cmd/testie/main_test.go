@@ -16,36 +16,41 @@ func TestFail(t *testing.T) {
 }
 
 func TestSlow(t *testing.T) {
-	time.Sleep(time.Millisecond * 1500)
+	time.Sleep(time.Millisecond * 10)
+	fmt.Printf("running fail test\n")
+}
+
+func TestNotSlow(t *testing.T) {
+	time.Sleep(time.Millisecond * 4)
 	fmt.Printf("running fail test\n")
 }
 
 func TestHanging(t *testing.T) {
 	fmt.Printf("running hanging test\n")
-	time.Sleep(time.Millisecond * 5500)
+	time.Sleep(time.Millisecond * 50)
 	fmt.Printf("done running hanging test\n")
 }
 
 func TestHier(t *testing.T) {
 	t.Run("section 1", func(t *testing.T) {
 		fmt.Printf("running in section 1\n")
-		time.Sleep(time.Millisecond * 250)
+		time.Sleep(time.Millisecond * 4)
 	})
 
 	t.Run("section 2", func(t *testing.T) {
 		fmt.Printf("running in section 2\n")
-		time.Sleep(time.Millisecond * 250)
+		time.Sleep(time.Millisecond * 4)
 	})
 
 	t.Run("section 3", func(t *testing.T) {
 		fmt.Printf("running in section 3\n")
 		t.Fail()
-		time.Sleep(time.Millisecond * 250)
+		time.Sleep(time.Millisecond * 4)
 	})
 
 	t.Run("section 4", func(t *testing.T) {
 		fmt.Printf("running in section 4\n")
-		time.Sleep(time.Millisecond * 250)
+		time.Sleep(time.Millisecond * 4)
 	})
 
 }

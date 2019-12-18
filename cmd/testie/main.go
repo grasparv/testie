@@ -19,7 +19,11 @@ var helptext = `
   If the environment variable TESTIE is set, those arguments will
   also be passed to 'go test'.
 
-  testie warns if a test takes more than 1 second to run.
+  testie warns if a test takes more than 1 second to complete
+  ("slow"). testie also warns while a test is running if the test
+  seems stuck ("hung"), which happens after 10s. Adjust these
+  thresholds with the timefactor switch, -tf=XX, for example -tf=0.1
+  to make 0.1s be considered slow and 1s be considered "stuck".
 
   Without arguments, testie only prints:
   
@@ -33,6 +37,8 @@ var helptext = `
 
     -vv print test output
 
+    -tf=0.1 change slow/hung warnings threshold
+
 `
 
 func main() {
@@ -40,6 +46,7 @@ func main() {
 	verbose := false
 	extra := false
 	debug := false
+	timefactor := 1.0
 
 	var extralist []string
 	extras := os.Getenv("TESTIE")
@@ -59,6 +66,14 @@ func main() {
 			short = true
 		} else if args[i] == "-debug" || args[i] == "-d" {
 			debug = true
+		} else if strings.HasPrefix(args[i], "-tf=") {
+			var f float64
+			n, err := fmt.Sscanf(args[i], "-tf=%f", &f)
+			if n != 1 || err != nil || f <= 0.0 {
+				fmt.Print(helptext)
+				return
+			}
+			timefactor = f
 		} else {
 			continue
 		}
@@ -71,7 +86,7 @@ func main() {
 		return
 	}
 
-	t := testie.New(verbose, extra, debug, short)
+	t := testie.New(verbose, extra, debug, short, timefactor)
 	rc := t.Run(args)
 	os.Exit(rc)
 }
