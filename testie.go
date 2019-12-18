@@ -34,6 +34,15 @@ type test struct {
 	skip bool
 }
 
+type record struct {
+	Time    time.Time
+	Action  string
+	Package string
+	Test    string
+	Output  string
+	Elapsed float64
+}
+
 const durationHigh = 1.0
 const durationHanging = 10.0
 const skipLabel = "skip"
@@ -136,15 +145,6 @@ func (p *Testie) Run(args []string) int {
 	} else {
 		return 0
 	}
-}
-
-type record struct {
-	Time    time.Time
-	Action  string
-	Package string
-	Test    string
-	Output  string
-	Elapsed float64
 }
 
 /*
