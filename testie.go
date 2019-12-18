@@ -27,6 +27,7 @@ type Testie struct {
 type test struct {
 	name string
 	pkg  string
+	t0   time.Time
 
 	scrollback []string
 
@@ -36,6 +37,7 @@ type test struct {
 }
 
 const durationHigh = 1.0
+const durationHanging = 5.0
 
 func New(verbose bool, extra bool, debug bool, short bool) *Testie {
 	if extra {
@@ -225,11 +227,17 @@ func (p *Testie) createTest(r *record) {
 	k := p.makeKey(r)
 
 	if _, ok := p.seen[k]; !ok {
-		p.seen[k] = &test{
+
+		t := &test{
 			scrollback: make([]string, 0, 100),
 			pkg:        r.Package,
 			name:       r.Test,
+			t0:         time.Now(),
 		}
+
+		p.seen[k] = t
+
+		go p.watchdog(t)
 	}
 }
 
@@ -259,6 +267,10 @@ func (p *Testie) printDurationWarning(r *record) {
 	}
 }
 
+func (p *Testie) printHungWarning(t *test) {
+	fmt.Printf("%s %s, ran for %v\n", aurora.Magenta("hung"), t.name, time.Since(t.t0))
+}
+
 func (p *Testie) getTimingInfo(r *record) string {
 	if p.extraverbose || r.Action == "bench" {
 		return fmt.Sprintf("%0.2fs ", r.Elapsed)
@@ -274,6 +286,28 @@ func (p *Testie) printScrollback(x *test, r *record) {
 		fmt.Printf("  here follows test output:\n")
 		for _, s := range t.scrollback {
 			fmt.Printf("    %s", s)
+		}
+	}
+}
+
+func (t test) finished() bool {
+	if t.pass || t.fail || t.skip {
+		return true
+	}
+	return false
+}
+
+func (p *Testie) watchdog(t *test) {
+	tick := time.NewTicker(time.Second * durationHanging)
+	loop := true
+	for loop {
+		select {
+		case <-tick.C:
+			if t.finished() {
+				loop = false
+			} else {
+				p.printHungWarning(t)
+			}
 		}
 	}
 }

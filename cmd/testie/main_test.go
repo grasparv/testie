@@ -20,6 +20,12 @@ func TestSlow(t *testing.T) {
 	fmt.Printf("running fail test\n")
 }
 
+func TestHanging(t *testing.T) {
+	fmt.Printf("running hanging test\n")
+	time.Sleep(time.Millisecond * 5500)
+	fmt.Printf("done running hanging test\n")
+}
+
 func TestHier(t *testing.T) {
 	t.Run("section 1", func(t *testing.T) {
 		fmt.Printf("running in section 1\n")
