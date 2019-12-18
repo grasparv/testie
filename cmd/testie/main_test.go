@@ -27,7 +27,7 @@ func TestNotSlow(t *testing.T) {
 
 func TestHanging(t *testing.T) {
 	fmt.Printf("running hanging test\n")
-	time.Sleep(time.Millisecond * 50)
+	time.Sleep(time.Millisecond * 110)
 	fmt.Printf("done running hanging test\n")
 }
 
