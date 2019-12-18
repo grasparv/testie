@@ -178,54 +178,54 @@ func (p *Testie) printLine(line []byte) {
 
 	switch r.Action {
 	case "run":
-		p.createTest(&r)
+		p.createTest(r)
 	case "skip":
-		t := p.getTest(&r)
+		t := p.getTest(r)
 		t.skip = true
 		p.skipcount++
 		if p.verbose {
-			p.printSkipped(&r)
+			p.printSkipped(r)
 		}
 	case "bench":
-		p.printBench(&r)
+		p.printBench(r)
 		if p.extraverbose {
-			t := p.getTest(&r)
-			p.printScrollback(t, &r)
+			t := p.getTest(r)
+			p.printScrollback(t, r)
 		}
 	case "output":
-		p.createTest(&r) // needed for bench
-		t := p.getTest(&r)
+		p.createTest(r) // needed for bench
+		t := p.getTest(r)
 		t.scrollback = append(t.scrollback, r.Output)
 	case "pass":
-		t := p.getTest(&r)
+		t := p.getTest(r)
 		t.pass = true
 		p.passcount++
 		if p.verbose {
-			p.printPassed(&r)
+			p.printPassed(r)
 			if p.extraverbose {
-				p.printScrollback(t, &r)
+				p.printScrollback(t, r)
 			}
 		}
-		p.printDurationWarning(&r)
+		p.printDurationWarning(r)
 	case "fail":
-		t := p.getTest(&r)
+		t := p.getTest(r)
 		t.fail = true
 		p.failcount++
-		p.printFailed(&r)
-		p.printScrollback(t, &r)
-		p.printDurationWarning(&r)
+		p.printFailed(r)
+		p.printScrollback(t, r)
+		p.printDurationWarning(r)
 	}
 }
 
-func (p Testie) makeKey(r *record) string {
+func (p Testie) makeKey(r record) string {
 	return r.Package + "####" + r.Test
 }
 
-func (p *Testie) getTest(r *record) *test {
+func (p *Testie) getTest(r record) *test {
 	return p.seen[p.makeKey(r)]
 }
 
-func (p *Testie) createTest(r *record) {
+func (p *Testie) createTest(r record) {
 	k := p.makeKey(r)
 
 	if _, ok := p.seen[k]; !ok {
@@ -243,27 +243,27 @@ func (p *Testie) createTest(r *record) {
 	}
 }
 
-func (p Testie) printBench(r *record) {
+func (p Testie) printBench(r record) {
 	fmt.Printf("%s %s%s\n", aurora.Yellow("bnch"), p.getTimingInfo(r), r.Test)
 }
 
-func (p Testie) printSkipped(r *record) {
+func (p Testie) printSkipped(r record) {
 	fmt.Printf("%s %s%s\n", aurora.Yellow("skip"), p.getTimingInfo(r), r.Test)
 }
 
-func (p Testie) printPassed(r *record) {
+func (p Testie) printPassed(r record) {
 	fmt.Printf("%s %s%s\n", aurora.Green("pass"), p.getTimingInfo(r), r.Test)
 }
 
-func (p Testie) printFailed(r *record) {
+func (p Testie) printFailed(r record) {
 	fmt.Printf("%s %s%s\n", aurora.Red("fail"), p.getTimingInfo(r), r.Test)
 }
 
-func (p Testie) printRunning(r *record) {
+func (p Testie) printRunning(r record) {
 	fmt.Printf("%s %s%s in %s\n", aurora.Bold("run "), r.Test, p.getTimingInfo(r), r.Package)
 }
 
-func (p Testie) printDurationWarning(r *record) {
+func (p Testie) printDurationWarning(r record) {
 	if r.Elapsed >= durationHigh*p.timefactor {
 		fmt.Printf("%s %s took %0.2fs\n", aurora.Blue("slow"), r.Test, r.Elapsed)
 	}
@@ -273,7 +273,7 @@ func (p Testie) printHungWarning(t *test) {
 	fmt.Printf("%s %s, ran for %v\n", aurora.Magenta("hung"), t.name, time.Since(t.t0))
 }
 
-func (p Testie) getTimingInfo(r *record) string {
+func (p Testie) getTimingInfo(r record) string {
 	if p.extraverbose || r.Action == "bench" {
 		return fmt.Sprintf("%0.2fs ", r.Elapsed)
 	} else {
@@ -281,7 +281,7 @@ func (p Testie) getTimingInfo(r *record) string {
 	}
 }
 
-func (p Testie) printScrollback(x *test, r *record) {
+func (p Testie) printScrollback(x *test, r record) {
 	if !p.short {
 		t := p.getTest(r)
 		fmt.Printf("  in package %s\n", aurora.Bold(r.Package))
