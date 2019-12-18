@@ -3,12 +3,9 @@ package testie
 import (
 	"bufio"
 	"encoding/json"
-	"fmt"
 	"io"
 	"os/exec"
 	"time"
-
-	"github.com/logrusorgru/aurora"
 )
 
 type Testie struct {
@@ -39,6 +36,12 @@ type test struct {
 
 const durationHigh = 1.0
 const durationHanging = 10.0
+const skipLabel = "skip"
+const runLabel = "run"
+const benchLabel = "bench"
+const outputLabel = "output"
+const passLabel = "pass"
+const failLabel = "fail"
 
 func New(verbose bool, extra bool, debug bool, short bool, tf float64) *Testie {
 	if extra {
@@ -122,14 +125,10 @@ func (p *Testie) Run(args []string) int {
 
 	rc := cmd.Wait()
 
-	fmt.Printf("%d failed, %d passed, %d skipped, %d total\n",
-		p.failcount,
-		p.passcount,
-		p.skipcount,
-		p.failcount+p.passcount+p.skipcount)
+	p.printSummary()
 
 	if p.failcount > 0 {
-		fmt.Printf("%s\n", aurora.Red("TEST FAILED"))
+		p.printSummaryFailure()
 	}
 
 	if rc != nil || p.failcount > 0 {
@@ -165,7 +164,7 @@ func (p *Testie) printLine(line []byte) {
 	var r record
 	err := json.Unmarshal(line, &r)
 	if err != nil {
-		fmt.Printf("%s", line)
+		p.printRawLine(line)
 		return
 	}
 	if len(r.Test) == 0 {
@@ -173,29 +172,29 @@ func (p *Testie) printLine(line []byte) {
 	}
 
 	if p.debug {
-		fmt.Printf("%+v\n", r)
+		p.printDebug(r)
 	}
 
 	switch r.Action {
-	case "run":
+	case runLabel:
 		p.createTest(r)
-	case "skip":
+	case skipLabel:
 		t := p.getTest(r)
 		t.skip = true
 		p.skipcount++
 		if p.verbose {
 			p.printSkipped(r)
 		}
-	case "bench":
+	case benchLabel:
 		p.printBench(r)
 		if p.extraverbose {
 			p.printScrollback(r)
 		}
-	case "output":
+	case outputLabel:
 		p.createTest(r) // needed for bench
 		t := p.getTest(r)
 		t.scrollback = append(t.scrollback, r.Output)
-	case "pass":
+	case passLabel:
 		t := p.getTest(r)
 		t.pass = true
 		p.passcount++
@@ -206,7 +205,7 @@ func (p *Testie) printLine(line []byte) {
 			}
 		}
 		p.printDurationWarning(r)
-	case "fail":
+	case failLabel:
 		t := p.getTest(r)
 		t.fail = true
 		p.failcount++
@@ -239,55 +238,6 @@ func (p *Testie) createTest(r record) {
 		p.seen[k] = t
 
 		go p.watchdog(t)
-	}
-}
-
-func (p Testie) printBench(r record) {
-	fmt.Printf("%s %s%s\n", aurora.Yellow("bnch"), p.getTimingInfo(r), r.Test)
-}
-
-func (p Testie) printSkipped(r record) {
-	fmt.Printf("%s %s%s\n", aurora.Yellow("skip"), p.getTimingInfo(r), r.Test)
-}
-
-func (p Testie) printPassed(r record) {
-	fmt.Printf("%s %s%s\n", aurora.Green("pass"), p.getTimingInfo(r), r.Test)
-}
-
-func (p Testie) printFailed(r record) {
-	fmt.Printf("%s %s%s\n", aurora.Red("fail"), p.getTimingInfo(r), r.Test)
-}
-
-func (p Testie) printRunning(r record) {
-	fmt.Printf("%s %s%s in %s\n", aurora.Bold("run "), r.Test, p.getTimingInfo(r), r.Package)
-}
-
-func (p Testie) printDurationWarning(r record) {
-	if r.Elapsed >= durationHigh*p.timefactor {
-		fmt.Printf("%s %s took %0.2fs\n", aurora.Blue("slow"), r.Test, r.Elapsed)
-	}
-}
-
-func (p Testie) printHungWarning(t *test) {
-	fmt.Printf("%s %s, ran for %v\n", aurora.Blue("hung"), t.name, time.Since(t.t0))
-}
-
-func (p Testie) getTimingInfo(r record) string {
-	if p.extraverbose || r.Action == "bench" {
-		return fmt.Sprintf("%0.2fs ", r.Elapsed)
-	} else {
-		return ""
-	}
-}
-
-func (p Testie) printScrollback(r record) {
-	if !p.short {
-		t := p.getTest(r)
-		fmt.Printf("  in package %s\n", aurora.Bold(r.Package))
-		fmt.Printf("  here follows test output:\n")
-		for _, s := range t.scrollback {
-			fmt.Printf("    %s", s)
-		}
 	}
 }
 

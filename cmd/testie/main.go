@@ -8,7 +8,7 @@ import (
 	"github.com/grasparv/testie"
 )
 
-var helptext = `
+const helptext = `
   usage: testie ['go test' flags]
 
   testie is a wrapper utility that executes 'go test' and formats
