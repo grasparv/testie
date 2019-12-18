@@ -8,7 +8,7 @@ import (
 )
 
 func (p Testie) getTimingInfo(r record) string {
-	if p.extraverbose || r.Action == "bench" {
+	if p.extraverbose || r.Action == benchLabel {
 		return fmt.Sprintf("%0.2fs ", r.Elapsed)
 	} else {
 		return ""
