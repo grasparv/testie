@@ -189,8 +189,7 @@ func (p *Testie) printLine(line []byte) {
 	case "bench":
 		p.printBench(r)
 		if p.extraverbose {
-			t := p.getTest(r)
-			p.printScrollback(t, r)
+			p.printScrollback(r)
 		}
 	case "output":
 		p.createTest(r) // needed for bench
@@ -203,7 +202,7 @@ func (p *Testie) printLine(line []byte) {
 		if p.verbose {
 			p.printPassed(r)
 			if p.extraverbose {
-				p.printScrollback(t, r)
+				p.printScrollback(r)
 			}
 		}
 		p.printDurationWarning(r)
@@ -212,7 +211,7 @@ func (p *Testie) printLine(line []byte) {
 		t.fail = true
 		p.failcount++
 		p.printFailed(r)
-		p.printScrollback(t, r)
+		p.printScrollback(r)
 		p.printDurationWarning(r)
 	}
 }
@@ -281,7 +280,7 @@ func (p Testie) getTimingInfo(r record) string {
 	}
 }
 
-func (p Testie) printScrollback(x *test, r record) {
+func (p Testie) printScrollback(r record) {
 	if !p.short {
 		t := p.getTest(r)
 		fmt.Printf("  in package %s\n", aurora.Bold(r.Package))
