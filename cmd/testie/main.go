@@ -17,7 +17,7 @@ const helptext = `
   '-v' internally, so those are not necessary to specify.
 
   If the environment variable TESTIE is set, those arguments will
-  also be passed to 'go test'.
+  also be passed to testie and 'go test'.
 
   testie warns if a test takes more than 1 second to complete
   ("slow"). testie also warns while a test is running if the test
