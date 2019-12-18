@@ -217,7 +217,7 @@ func (p *Testie) printLine(line []byte) {
 	}
 }
 
-func (p *Testie) makeKey(r *record) string {
+func (p Testie) makeKey(r *record) string {
 	return r.Package + "####" + r.Test
 }
 
@@ -243,37 +243,37 @@ func (p *Testie) createTest(r *record) {
 	}
 }
 
-func (p *Testie) printBench(r *record) {
+func (p Testie) printBench(r *record) {
 	fmt.Printf("%s %s%s\n", aurora.Yellow("bnch"), p.getTimingInfo(r), r.Test)
 }
 
-func (p *Testie) printSkipped(r *record) {
+func (p Testie) printSkipped(r *record) {
 	fmt.Printf("%s %s%s\n", aurora.Yellow("skip"), p.getTimingInfo(r), r.Test)
 }
 
-func (p *Testie) printPassed(r *record) {
+func (p Testie) printPassed(r *record) {
 	fmt.Printf("%s %s%s\n", aurora.Green("pass"), p.getTimingInfo(r), r.Test)
 }
 
-func (p *Testie) printFailed(r *record) {
+func (p Testie) printFailed(r *record) {
 	fmt.Printf("%s %s%s\n", aurora.Red("fail"), p.getTimingInfo(r), r.Test)
 }
 
-func (p *Testie) printRunning(r *record) {
+func (p Testie) printRunning(r *record) {
 	fmt.Printf("%s %s%s in %s\n", aurora.Bold("run "), r.Test, p.getTimingInfo(r), r.Package)
 }
 
-func (p *Testie) printDurationWarning(r *record) {
+func (p Testie) printDurationWarning(r *record) {
 	if r.Elapsed >= durationHigh*p.timefactor {
 		fmt.Printf("%s %s took %0.2fs\n", aurora.Blue("slow"), r.Test, r.Elapsed)
 	}
 }
 
-func (p *Testie) printHungWarning(t *test) {
+func (p Testie) printHungWarning(t *test) {
 	fmt.Printf("%s %s, ran for %v\n", aurora.Magenta("hung"), t.name, time.Since(t.t0))
 }
 
-func (p *Testie) getTimingInfo(r *record) string {
+func (p Testie) getTimingInfo(r *record) string {
 	if p.extraverbose || r.Action == "bench" {
 		return fmt.Sprintf("%0.2fs ", r.Elapsed)
 	} else {
@@ -281,7 +281,7 @@ func (p *Testie) getTimingInfo(r *record) string {
 	}
 }
 
-func (p *Testie) printScrollback(x *test, r *record) {
+func (p Testie) printScrollback(x *test, r *record) {
 	if !p.short {
 		t := p.getTest(r)
 		fmt.Printf("  in package %s\n", aurora.Bold(r.Package))
@@ -299,7 +299,7 @@ func (t test) finished() bool {
 	return false
 }
 
-func (p *Testie) watchdog(t *test) {
+func (p Testie) watchdog(t *test) {
 	second := int64(time.Second)
 	fsecond := float64(second)
 	tf := durationHanging * p.timefactor * fsecond
