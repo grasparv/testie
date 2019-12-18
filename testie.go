@@ -56,6 +56,7 @@ func New(verbose bool, extra bool, debug bool, short bool, tf float64) *Testie {
 	if extra {
 		verbose = true
 	}
+
 	p := Testie{
 		seen:         make(map[string]*test),
 		verbose:      verbose,
@@ -64,6 +65,7 @@ func New(verbose bool, extra bool, debug bool, short bool, tf float64) *Testie {
 		short:        short,
 		timefactor:   tf,
 	}
+
 	return &p
 }
 
@@ -135,7 +137,6 @@ func (p *Testie) Run(args []string) int {
 	rc := cmd.Wait()
 
 	p.printSummary()
-
 	if p.failcount > 0 {
 		p.printSummaryFailure()
 	}
@@ -167,6 +168,7 @@ func (p *Testie) printLine(line []byte) {
 		p.printRawLine(line)
 		return
 	}
+
 	if len(r.Test) == 0 {
 		return
 	}
@@ -227,7 +229,6 @@ func (p *Testie) createTest(r record) {
 	k := p.makeKey(r)
 
 	if _, ok := p.seen[k]; !ok {
-
 		t := &test{
 			scrollback: make([]string, 0, 100),
 			pkg:        r.Package,
@@ -245,6 +246,7 @@ func (t test) finished() bool {
 	if t.pass || t.fail || t.skip {
 		return true
 	}
+
 	return false
 }
 
@@ -254,8 +256,8 @@ func (p Testie) watchdog(t *test) {
 	tf := durationHanging * p.timefactor * fsecond
 	dtf := time.Duration(tf)
 	tick := time.NewTicker(dtf)
-	loop := true
-	for loop {
+
+	for loop := true; loop; {
 		select {
 		case <-tick.C:
 			if t.finished() {
