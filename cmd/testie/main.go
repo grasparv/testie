@@ -52,24 +52,18 @@ func main() {
 	for i := 0; i < len(args); i++ {
 		if args[i] == "-v" {
 			verbose = true
-			args = append(args[:i], args[i+1:]...)
-			i--
 		} else if args[i] == "-vv" {
 			extra = true
-			args = append(args[:i], args[i+1:]...)
-			i--
 		} else if args[i] == "-json" {
-			args = append(args[:i], args[i+1:]...)
-			i--
 		} else if args[i] == "-s" {
 			short = true
-			args = append(args[:i], args[i+1:]...)
-			i--
 		} else if args[i] == "-debug" || args[i] == "-d" {
 			debug = true
-			args = append(args[:i], args[i+1:]...)
-			i--
+		} else {
+			continue
 		}
+		args = append(args[:i], args[i+1:]...)
+		i--
 	}
 
 	if len(args) == 1 && args[0] == "-h" {
