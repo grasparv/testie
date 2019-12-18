@@ -269,7 +269,7 @@ func (p Testie) printDurationWarning(r record) {
 }
 
 func (p Testie) printHungWarning(t *test) {
-	fmt.Printf("%s %s, ran for %v\n", aurora.Magenta("hung"), t.name, time.Since(t.t0))
+	fmt.Printf("%s %s, ran for %v\n", aurora.Blue("hung"), t.name, time.Since(t.t0))
 }
 
 func (p Testie) getTimingInfo(r record) string {
