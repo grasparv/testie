@@ -197,11 +197,9 @@ func (p *Testie) printLine(line []byte) {
 		t.pass = true
 		p.passcount++
 		if p.verbose {
+			p.printPassed(&r)
 			if p.extraverbose {
-				p.printPassed(&r)
 				p.printScrollback(t, &r)
-			} else {
-				p.printPassed(&r)
 			}
 		}
 		p.printDurationWarning(&r)
