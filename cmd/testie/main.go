@@ -57,7 +57,10 @@ func main() {
 	args := append(os.Args[1:], extralist...)
 
 	for i := 0; i < len(args); i++ {
-		if args[i] == "-v" {
+		if args[i] == "-h" {
+			fmt.Print(helptext)
+			return
+		} else if args[i] == "-v" {
 			verbose = true
 		} else if args[i] == "-vv" {
 			extra = true
@@ -79,11 +82,6 @@ func main() {
 		}
 		args = append(args[:i], args[i+1:]...)
 		i--
-	}
-
-	if len(args) == 1 && args[0] == "-h" {
-		fmt.Print(helptext)
-		return
 	}
 
 	t := testie.New(verbose, extra, debug, short, timefactor)
