@@ -5,7 +5,7 @@ import (
 	"os"
 	"strings"
 
-	"github.com/grasparv/testie"
+	"github.com/grasparv/testie/testie"
 )
 
 const helptext = `
