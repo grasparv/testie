@@ -137,11 +137,13 @@ func (p *Testie) Run(args []string) int {
 	rc := cmd.Wait()
 
 	p.printSummary()
+
 	if p.failcount > 0 {
 		p.printSummaryFailure()
-	}
-
-	if rc != nil || p.failcount > 0 {
+		return 1
+	} else if rc != nil {
+		p.printGolangWarning()
+		p.printSummaryFailure()
 		return 1
 	} else {
 		return 0
