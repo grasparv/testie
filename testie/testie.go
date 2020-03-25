@@ -142,7 +142,7 @@ func (p *Testie) Run(args []string) int {
 		p.printSummaryFailure()
 		return 1
 	} else if rc != nil {
-		p.printGolangWarning()
+		p.printGolangWarning(rc)
 		p.printSummaryFailure()
 		return 1
 	} else {

@@ -56,8 +56,8 @@ func (p Testie) printScrollback(r record) {
 	}
 }
 
-func (p Testie) printGolangWarning() {
-	fmt.Printf("%s\n", aurora.Red("WARNING: Something is very fishy - 'go test' returned non-zero status but reported no test failures!"))
+func (p Testie) printGolangWarning(err error) {
+	fmt.Printf("%s\n", aurora.Red(fmt.Sprintf("go test %s", err)))
 }
 
 func (p Testie) printSummaryFailure() {
