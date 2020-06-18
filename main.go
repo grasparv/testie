@@ -2,12 +2,17 @@ package main
 
 import (
 	"fmt"
+	"io/ioutil"
 	"os"
 	"os/exec"
 	"strings"
 
 	"github.com/grasparv/testie/testie"
 )
+
+const outfile = "/tmp/testie.log"
+
+const pagelines = 30
 
 const helptext = `
   usage: testie ['go test' flags]
@@ -98,7 +103,7 @@ func main() {
 	stdout := os.Stdout
 	fp := stdout
 	if paginate {
-		outfp, err := os.Create("/tmp/testie.log")
+		outfp, err := os.Create(outfile)
 		if err == nil {
 			defer outfp.Close()
 			fp = outfp
@@ -111,9 +116,17 @@ func main() {
 	rc := t.Run(args)
 
 	if paginate && fp != stdout {
-		cmd := exec.Command("/usr/bin/less", "-SRn", "/tmp/testie.log")
-		cmd.Stdout = stdout
-		cmd.Run()
+		fp.Close()
+		if t.Lines() < pagelines {
+			data, err := ioutil.ReadFile(outfile)
+			if err == nil {
+				fmt.Fprint(stdout, string(data))
+			}
+		} else {
+			cmd := exec.Command("/usr/bin/less", "-SRn", outfile)
+			cmd.Stdout = stdout
+			cmd.Run()
+		}
 	}
 
 	os.Exit(rc)

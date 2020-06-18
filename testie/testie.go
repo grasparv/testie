@@ -21,11 +21,12 @@ type Testie struct {
 	verbose      bool
 	extraverbose bool
 	timefactor   float64
-	slim         bool
 
+	slim       bool
 	slimRegexp *regexp.Regexp
 
-	Fp io.Writer
+	Fp    io.Writer
+	lines int
 }
 
 type test struct {
@@ -283,4 +284,8 @@ func (p Testie) watchdog(t *test) {
 			}
 		}
 	}
+}
+
+func (p Testie) Lines() int {
+	return p.lines
 }
