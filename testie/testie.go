@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"encoding/json"
 	"io"
+	"os"
 	"os/exec"
 	"regexp"
 	"time"
@@ -24,6 +25,8 @@ type Testie struct {
 	slim         bool
 
 	slimRegexp *regexp.Regexp
+
+	fp *os.File
 }
 
 type test struct {
@@ -56,7 +59,7 @@ const outputLabel = "output"
 const passLabel = "pass"
 const failLabel = "fail"
 
-func New(verbose bool, extra bool, debug bool, short bool, tf float64, slim bool) *Testie {
+func New(fp *os.File, verbose bool, extra bool, debug bool, short bool, tf float64, slim bool) *Testie {
 	if extra {
 		verbose = true
 	}
@@ -67,6 +70,7 @@ func New(verbose bool, extra bool, debug bool, short bool, tf float64, slim bool
 	}
 
 	p := Testie{
+		fp:           fp,
 		seen:         make(map[string]*test),
 		verbose:      verbose,
 		extraverbose: extra,

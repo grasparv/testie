@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"os"
+	"os/exec"
 	"strings"
 
 	"github.com/grasparv/testie/testie"
@@ -41,6 +42,8 @@ const helptext = `
 
     -no-slim do indent and keep t.Logf() annotations
 
+    -no-page avoid automatic pagination
+
 `
 
 func main() {
@@ -50,6 +53,7 @@ func main() {
 	debug := false
 	timefactor := 1.0
 	slim := true
+	paginate := true
 
 	var extralist []string
 	extras := os.Getenv("TESTIE")
@@ -69,6 +73,8 @@ func main() {
 			extra = true
 		} else if args[i] == "-no-slim" {
 			slim = false
+		} else if args[i] == "-no-page" {
+			paginate = false
 		} else if args[i] == "-json" {
 		} else if args[i] == "-s" {
 			short = true
@@ -89,7 +95,26 @@ func main() {
 		i--
 	}
 
-	t := testie.New(verbose, extra, debug, short, timefactor, slim)
+	stdout := os.Stdout
+	fp := stdout
+	if paginate {
+		outfp, err := os.Create("/tmp/testie.log")
+		if err == nil {
+			defer outfp.Close()
+			fp = outfp
+			os.Stdout = fp
+			os.Stderr = fp
+		}
+	}
+
+	t := testie.New(fp, verbose, extra, debug, short, timefactor, slim)
 	rc := t.Run(args)
+
+	if paginate && fp != stdout {
+		cmd := exec.Command("/usr/bin/less", "-SRn", "/tmp/testie.log")
+		cmd.Stdout = stdout
+		cmd.Run()
+	}
+
 	os.Exit(rc)
 }
