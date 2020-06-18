@@ -62,7 +62,7 @@ func (p Testie) printScrollback(r record) {
 				if tmp := p.slimRegexp.FindStringIndex(s); tmp != nil {
 					fmt.Print(s[tmp[1]:])
 				} else {
-					fmt.Print("   " + s)
+					fmt.Print(s)
 				}
 			}
 		}
