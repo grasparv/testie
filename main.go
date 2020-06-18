@@ -39,6 +39,8 @@ const helptext = `
 
     -tf=0.1 change slow/hung warnings threshold
 
+    -no-slim do indent and keep t.Logf() annotations
+
 `
 
 func main() {
@@ -47,6 +49,7 @@ func main() {
 	extra := false
 	debug := false
 	timefactor := 1.0
+	slim := true
 
 	var extralist []string
 	extras := os.Getenv("TESTIE")
@@ -64,6 +67,8 @@ func main() {
 			verbose = true
 		} else if args[i] == "-vv" {
 			extra = true
+		} else if args[i] == "-no-slim" {
+			slim = false
 		} else if args[i] == "-json" {
 		} else if args[i] == "-s" {
 			short = true
@@ -84,7 +89,7 @@ func main() {
 		i--
 	}
 
-	t := testie.New(verbose, extra, debug, short, timefactor)
+	t := testie.New(verbose, extra, debug, short, timefactor, slim)
 	rc := t.Run(args)
 	os.Exit(rc)
 }

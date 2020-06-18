@@ -48,10 +48,23 @@ func (p Testie) printHungWarning(t *test) {
 func (p Testie) printScrollback(r record) {
 	if !p.short {
 		t := p.getTest(r)
-		fmt.Printf("  in package %s\n", aurora.Bold(r.Package))
-		fmt.Printf("  here follows test output:\n")
+		if !p.slim {
+			fmt.Printf("  in package %s\n", aurora.Bold(r.Package))
+			fmt.Printf("  here follows test output:\n")
+		} else {
+			fmt.Printf("in package %s\n", aurora.Bold(r.Package))
+			fmt.Printf("here follows test output:\n")
+		}
 		for _, s := range t.scrollback {
-			fmt.Printf("    %s", s)
+			if !p.slim {
+				fmt.Printf("    %s", s)
+			} else {
+				if tmp := p.slimRegexp.FindStringIndex(s); tmp != nil {
+					fmt.Print(s[tmp[1]:])
+				} else {
+					fmt.Print("   " + s)
+				}
+			}
 		}
 	}
 }

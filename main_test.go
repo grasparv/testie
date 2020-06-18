@@ -8,6 +8,7 @@ import (
 
 func TestBasic(t *testing.T) {
 	fmt.Printf("running basic test\n")
+	t.Logf("running log comment in basic test\n")
 }
 
 func TestFail(t *testing.T) {

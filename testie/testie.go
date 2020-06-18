@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"io"
 	"os/exec"
+	"regexp"
 	"time"
 )
 
@@ -20,6 +21,9 @@ type Testie struct {
 	verbose      bool
 	extraverbose bool
 	timefactor   float64
+	slim         bool
+
+	slimRegexp *regexp.Regexp
 }
 
 type test struct {
@@ -52,9 +56,14 @@ const outputLabel = "output"
 const passLabel = "pass"
 const failLabel = "fail"
 
-func New(verbose bool, extra bool, debug bool, short bool, tf float64) *Testie {
+func New(verbose bool, extra bool, debug bool, short bool, tf float64, slim bool) *Testie {
 	if extra {
 		verbose = true
+	}
+
+	re, err := regexp.Compile(`^[\s]+Test[^:]+: [^\.]+\.go:\d+: `)
+	if err != nil {
+		panic(err)
 	}
 
 	p := Testie{
@@ -64,6 +73,8 @@ func New(verbose bool, extra bool, debug bool, short bool, tf float64) *Testie {
 		debug:        debug,
 		short:        short,
 		timefactor:   tf,
+		slim:         slim,
+		slimRegexp:   re,
 	}
 
 	return &p
