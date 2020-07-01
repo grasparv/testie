@@ -64,7 +64,7 @@ func New(fp io.Writer, verbose bool, extra bool, debug bool, short bool, tf floa
 		verbose = true
 	}
 
-	re, err := regexp.Compile(`^[\s]+Test[^:]+: [^\.]+\.go:\d+: `)
+	re, err := regexp.Compile(`^[\s]+Test[^:]+: [^\.]+\.(go|s):\d+: `)
 	if err != nil {
 		panic(err)
 	}
