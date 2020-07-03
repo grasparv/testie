@@ -81,6 +81,11 @@ func (p *Testie) printScrollback(r record) {
 	}
 }
 
+func (p *Testie) printNoTests() {
+	fmt.Fprintf(p.Fp, "%s\n", aurora.Red("no tests found, report as error"))
+	p.lines++
+}
+
 func (p *Testie) printGolangWarning(err error) {
 	fmt.Fprintf(p.Fp, "%s\n", aurora.Red(fmt.Sprintf("go test %s", err)))
 	p.lines++

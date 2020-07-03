@@ -160,6 +160,9 @@ func (p *Testie) Run(args []string) int {
 		p.printGolangWarning(rc)
 		p.printSummaryFailure()
 		return 1
+	} else if p.failcount+p.skipcount+p.passcount == 0 {
+		p.printNoTests()
+		return 1
 	} else {
 		return 0
 	}
