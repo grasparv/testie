@@ -1,0 +1,2 @@
+* Avoid unnecessary typing. Remove -v and -vv. If running many tests, use -v automatically. If running one test, use -vv.
+* Give feedback. Always show output on terminal, re-draw the last line of output continously.
