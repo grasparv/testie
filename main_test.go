@@ -71,3 +71,14 @@ func BenchmarkHello(b *testing.B) {
 		b.Logf("hello\n")
 	}
 }
+
+func TestTheSkip(t *testing.T) {
+	t.Logf("Skip because of reason...")
+	t.Skip()
+}
+
+func TestAlright(t *testing.T) {
+}
+
+func TestAlrightAgain(t *testing.T) {
+}

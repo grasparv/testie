@@ -8,109 +8,76 @@ import (
 )
 
 func (p Testie) getTimingInfo(r record) string {
-	if p.extraverbose || r.Action == benchLabel {
+	if r.Action == benchLabel {
 		return fmt.Sprintf("%0.2fs ", r.Elapsed)
 	} else {
 		return ""
 	}
 }
 
+func (p *Testie) print(status bool, format string, a ...interface{}) {
+	if status {
+		fmt.Fprintf(p.fpStatus, format, a...)
+	}
+	if p.fpOutput != nil {
+		fmt.Fprintf(p.fpOutput, format, a...)
+	}
+}
+
 func (p *Testie) printBench(r record) {
-	fmt.Fprintf(p.Fp, "%s %s%s\n", aurora.Yellow("bnch"), p.getTimingInfo(r), r.Test)
-	p.lines++
+	p.print(true, "%s %s%s\n", aurora.Yellow("bnch"), p.getTimingInfo(r), r.Test)
 }
 
 func (p *Testie) printSkipped(r record) {
-	fmt.Fprintf(p.Fp, "%s %s%s\n", aurora.Yellow("skip"), p.getTimingInfo(r), r.Test)
-	p.lines++
+	p.print(true, "%s %s%s\n", aurora.Yellow("skip"), p.getTimingInfo(r), r.Test)
 }
 
 func (p *Testie) printPassed(r record) {
-	fmt.Fprintf(p.Fp, "%s %s%s\n", aurora.Green("pass"), p.getTimingInfo(r), r.Test)
-	p.lines++
+	p.print(true, "%s %s%s\n", aurora.Green("pass"), p.getTimingInfo(r), r.Test)
 }
 
 func (p *Testie) printFailed(r record) {
-	fmt.Fprintf(p.Fp, "%s %s%s\n", aurora.Red("fail"), p.getTimingInfo(r), r.Test)
-	p.lines++
-}
-
-func (p *Testie) printRunning(r record) {
-	fmt.Fprintf(p.Fp, "%s %s%s in %s\n", aurora.Bold("run "), r.Test, p.getTimingInfo(r), r.Package)
-	p.lines++
+	p.print(true, "%s %s%s\n", aurora.Red("fail"), p.getTimingInfo(r), r.Test)
 }
 
 func (p *Testie) printDurationWarning(r record) {
 	if r.Elapsed >= durationHigh*p.timefactor {
-		fmt.Fprintf(p.Fp, "%s %s took %0.2fs\n", aurora.Blue("slow"), r.Test, r.Elapsed)
-		p.lines++
+		p.print(true, "%s %s took %0.2fs\n", aurora.Blue("slow"), r.Test, r.Elapsed)
 	}
 }
 
 func (p *Testie) printHungWarning(t *test) {
-	fmt.Fprintf(p.Fp, "%s %s, ran for %v\n", aurora.Blue("hung"), t.name, time.Since(t.t0))
-	p.lines++
+	p.print(true, "%s %s, ran for %v\n", aurora.Blue("hung"), t.name, time.Since(t.t0))
 }
 
 func (p *Testie) printScrollback(r record) {
-	if !p.short {
-		t := p.getTest(r)
-		if !p.slim {
-			fmt.Fprintf(p.Fp, "  in package %s\n", aurora.Bold(r.Package))
-			fmt.Fprintf(p.Fp, "  here follows test output:\n")
-			p.lines++
+	t := p.getTest(r)
+	p.print(false, "in package %s\n", aurora.Bold(r.Package))
+	for _, s := range t.scrollback {
+		if tmp := p.slimRegexp.FindStringIndex(s); tmp != nil {
+			p.print(false, s[tmp[1]:])
 		} else {
-			fmt.Fprintf(p.Fp, "in package %s\n", aurora.Bold(r.Package))
-			fmt.Fprintf(p.Fp, "here follows test output:\n")
-			p.lines++
-		}
-		for _, s := range t.scrollback {
-			if !p.slim {
-				fmt.Fprintf(p.Fp, "    %s", s)
-				p.lines++
-			} else {
-				if tmp := p.slimRegexp.FindStringIndex(s); tmp != nil {
-					fmt.Print(s[tmp[1]:])
-					p.lines++
-				} else {
-					fmt.Print(s)
-					p.lines++
-				}
-			}
+			p.print(false, s)
 		}
 	}
 }
 
 func (p *Testie) printNoTests() {
-	fmt.Fprintf(p.Fp, "%s\n", aurora.Red("no tests found, report as error"))
-	p.lines++
+	p.print(true, "%s\n", aurora.Red("no tests found, report as error"))
 }
 
 func (p *Testie) printGolangWarning(err error) {
-	fmt.Fprintf(p.Fp, "%s\n", aurora.Red(fmt.Sprintf("go test %s", err)))
-	p.lines++
+	p.print(true, "%s\n", aurora.Red(fmt.Sprintf("go test %s", err)))
 }
 
 func (p *Testie) printSummaryFailure() {
-	fmt.Fprintf(p.Fp, "%s\n", aurora.Red("TEST FAILED"))
-	p.lines++
+	p.print(true, "%s\n", aurora.Red("TEST FAILED"))
 }
 
 func (p *Testie) printSummary() {
-	fmt.Fprintf(p.Fp, "%d failed, %d passed, %d skipped, %d total\n",
-		p.failcount,
-		p.passcount,
-		p.skipcount,
-		p.failcount+p.passcount+p.skipcount)
-	p.lines++
-}
-
-func (p *Testie) printDebug(r record) {
-	fmt.Fprintf(p.Fp, "%+v\n", r)
-	p.lines++
+	p.print(true, "%d failed, %d passed, %d skipped, %d total\n", p.failcount, p.passcount, p.skipcount, p.failcount+p.passcount+p.skipcount)
 }
 
 func (p *Testie) printRawLine(line []byte) {
-	fmt.Fprintf(p.Fp, "%s", line)
-	p.lines++
+	p.print(false, "%s", line)
 }

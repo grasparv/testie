@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"encoding/json"
 	"io"
+	"os"
 	"os/exec"
 	"regexp"
 	"time"
@@ -14,19 +15,18 @@ type Testie struct {
 	passcount int
 	failcount int
 
+	updates   []*record
+	lastflush int
+
 	seen map[string]*test
 
-	short        bool
-	debug        bool
-	verbose      bool
-	extraverbose bool
-	timefactor   float64
+	timefactor float64
+	didselect  bool
 
-	slim       bool
 	slimRegexp *regexp.Regexp
 
-	Fp    io.Writer
-	lines int
+	fpStatus io.Writer
+	fpOutput io.Writer
 }
 
 type test struct {
@@ -59,26 +59,24 @@ const outputLabel = "output"
 const passLabel = "pass"
 const failLabel = "fail"
 
-func New(fp io.Writer, verbose bool, extra bool, debug bool, short bool, tf float64, slim bool) *Testie {
-	if extra {
-		verbose = true
-	}
-
+func New(outfile string, didselection bool, tf float64) *Testie {
 	re, err := regexp.Compile(`^[\s]+Test[^:]+: [^\.]+\.(go|s):\d+: `)
 	if err != nil {
 		panic(err)
 	}
 
 	p := Testie{
-		Fp:           fp,
-		seen:         make(map[string]*test),
-		verbose:      verbose,
-		extraverbose: extra,
-		debug:        debug,
-		short:        short,
-		timefactor:   tf,
-		slim:         slim,
-		slimRegexp:   re,
+		fpStatus:   os.Stdout,
+		seen:       make(map[string]*test),
+		timefactor: tf,
+		slimRegexp: re,
+		didselect:  didselection,
+		updates:    make([]*record, 0),
+	}
+
+	p.fpOutput, err = os.Create(outfile)
+	if err != nil {
+		panic(err)
 	}
 
 	return &p
@@ -151,6 +149,7 @@ func (p *Testie) Run(args []string) int {
 
 	rc := cmd.Wait()
 
+	p.flush()
 	p.printSummary()
 
 	if p.failcount > 0 {
@@ -160,12 +159,16 @@ func (p *Testie) Run(args []string) int {
 		p.printGolangWarning(rc)
 		p.printSummaryFailure()
 		return 1
-	} else if p.failcount+p.skipcount+p.passcount == 0 {
+	} else if p.totalCount() == 0 {
 		p.printNoTests()
 		return 1
 	} else {
 		return 0
 	}
+}
+
+func (p Testie) totalCount() int {
+	return p.failcount + p.skipcount + p.passcount
 }
 
 /*
@@ -193,9 +196,7 @@ func (p *Testie) printLine(line []byte) {
 		return
 	}
 
-	if p.debug {
-		p.printDebug(r)
-	}
+	p.updates = append(p.updates, &r)
 
 	switch r.Action {
 	case runLabel:
@@ -204,14 +205,9 @@ func (p *Testie) printLine(line []byte) {
 		t := p.getTest(r)
 		t.skip = true
 		p.skipcount++
-		if p.verbose {
-			p.printSkipped(r)
-		}
+		p.flush()
 	case benchLabel:
-		p.printBench(r)
-		if p.extraverbose {
-			p.printScrollback(r)
-		}
+		p.flush()
 	case outputLabel:
 		p.createTest(r) // needed for bench
 		t := p.getTest(r)
@@ -220,20 +216,50 @@ func (p *Testie) printLine(line []byte) {
 		t := p.getTest(r)
 		t.pass = true
 		p.passcount++
-		if p.verbose {
-			p.printPassed(r)
-			if p.extraverbose {
-				p.printScrollback(r)
-			}
-		}
-		p.printDurationWarning(r)
+		p.flush()
 	case failLabel:
 		t := p.getTest(r)
 		t.fail = true
 		p.failcount++
-		p.printFailed(r)
-		p.printScrollback(r)
-		p.printDurationWarning(r)
+		p.flush()
+	}
+}
+
+func (p Testie) DoPaging() bool {
+	if p.failcount > 0 || // any failures
+		p.didselect { // did selection
+		return true
+	}
+	return false
+}
+
+func (p *Testie) flush() {
+	for i := p.lastflush; i < len(p.updates); i++ {
+		r := *p.updates[i]
+
+		switch r.Action {
+		case runLabel:
+		case skipLabel:
+			if p.didselect {
+				p.printScrollback(r)
+			}
+			p.printSkipped(r)
+		case benchLabel:
+			p.printBench(r)
+			p.printScrollback(r)
+		case outputLabel:
+		case passLabel:
+			p.printPassed(r)
+			if p.didselect {
+				p.printScrollback(r)
+			}
+			p.printDurationWarning(r)
+		case failLabel:
+			p.printFailed(r)
+			p.printScrollback(r)
+			p.printDurationWarning(r)
+		}
+		p.lastflush = i + 1
 	}
 }
 
@@ -287,8 +313,4 @@ func (p Testie) watchdog(t *test) {
 			}
 		}
 	}
-}
-
-func (p Testie) Lines() int {
-	return p.lines
 }
