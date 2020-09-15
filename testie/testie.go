@@ -25,8 +25,9 @@ type Testie struct {
 
 	slimRegexp *regexp.Regexp
 
-	fpStatus io.Writer
-	fpOutput io.Writer
+	fpStatus     io.Writer
+	fpOutput     io.Writer
+	lastlinesize int
 }
 
 type test struct {
@@ -212,6 +213,7 @@ func (p *Testie) printLine(line []byte) {
 		p.createTest(r) // needed for bench
 		t := p.getTest(r)
 		t.scrollback = append(t.scrollback, r.Output)
+		p.printLastLine(r.Output)
 	case passLabel:
 		t := p.getTest(r)
 		t.pass = true

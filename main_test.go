@@ -6,6 +6,17 @@ import (
 	"time"
 )
 
+func TestSlowPrint(t *testing.T) {
+	t.Logf("first line")
+	time.Sleep(time.Second)
+	t.Logf("first line")
+	time.Sleep(time.Second)
+	t.Logf("first line")
+	time.Sleep(time.Second)
+	t.Logf("first line")
+	time.Sleep(time.Second)
+}
+
 func TestBasic(t *testing.T) {
 	fmt.Printf("running basic test\n")
 	t.Logf("running log comment in basic test\n")

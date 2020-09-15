@@ -16,11 +16,14 @@ func (p Testie) getTimingInfo(r record) string {
 }
 
 func (p *Testie) print(status bool, format string, a ...interface{}) {
+	msg := fmt.Sprintf(format, a...)
 	if status {
-		fmt.Fprintf(p.fpStatus, format, a...)
+		p.clearLastLine()
+		fmt.Fprint(p.fpStatus, msg)
+		p.lastlinesize = len(msg)
 	}
 	if p.fpOutput != nil {
-		fmt.Fprintf(p.fpOutput, format, a...)
+		fmt.Fprint(p.fpOutput, msg)
 	}
 }
 
