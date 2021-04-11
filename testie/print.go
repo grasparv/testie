@@ -82,5 +82,5 @@ func (p *Testie) printSummary() {
 }
 
 func (p *Testie) printRawLine(line []byte) {
-	p.print(false, "%s", line)
+	p.print(true, "%s", line)
 }
